@@ -1,11 +1,10 @@
 from torch.utils.data import DataLoader
 from fma_dataset import FMASpectrogramDataset
 
-dataset = FMASpectrogramDataset("data/processed/fma_specs")
+dataset = FMASpectrogramDataset("data/splits/train.txt")
 loader = DataLoader(dataset, batch_size=8, shuffle=True)
 
-batch = next(iter(loader))
-x, y, paths = batch
+x, y, paths = next(iter(loader))
 
 print("Batch tensor shape:", x.shape)
 print("Batch labels shape:", y.shape)

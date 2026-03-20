@@ -1,6 +1,6 @@
 from fma_dataset import FMASpectrogramDataset
 
-dataset = FMASpectrogramDataset("data/processed/fma_specs")
+dataset = FMASpectrogramDataset("data/splits/train.txt")
 
 print("Dataset boyutu:", len(dataset))
 
