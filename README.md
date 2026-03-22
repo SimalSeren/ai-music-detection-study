@@ -31,7 +31,8 @@ AI-Generated Music Detection and its Challenges
 - Epoch 3/5 | Train Loss: 0.0866 | Train Acc: 0.9763 | Val Loss: 0.0703 | Val Acc: 0.9643
 - Epoch 4/5 | Train Loss: 0.0632 | Train Acc: 0.9826 | Val Loss: 0.0992 | Val Acc: 0.9821
 - Epoch 5/5 | Train Loss: 0.0440 | Train Acc: 0.9906 | Val Loss: 0.0667 | Val Acc: 0.9607
-(şu an basit veriler üzerine çalıştığımız için doğruluk oranı yüksek)
+(tüm train verisi 5 kez modelden geçecek şekilde, şu an basit veriler üzerine çalıştığımız için doğruluk oranı yüksek)
+
 
 ## Şu anki durum
 Çalışan ilk baseline kuruldu. Veri hazırlama, spectrogram çıkarma, sahte veri üretme ve CNN eğitimi aşamaları başarıyla tamamlandı.
