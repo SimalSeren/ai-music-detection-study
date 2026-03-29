@@ -3,7 +3,7 @@ import librosa
 import numpy as np
 import soundfile as sf
 
-input_list = Path("data/fma_subset_100.txt")
+input_list = Path("data/fma_subset_500.txt")
 output_dir = Path("data/reconstructed/griffinlim")
 output_dir.mkdir(parents=True, exist_ok=True)
 
