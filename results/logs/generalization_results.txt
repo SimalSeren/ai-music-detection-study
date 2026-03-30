@@ -1,0 +1,19 @@
+Generalization Test Results
+Accuracy : 0.4999
+Precision: 0.0000
+Recall   : 0.0000
+F1-score : 0.0000
+
+Confusion Matrix:
+[[13955     3]
+ [13958     0]]
+
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.50      1.00      0.67     13958
+           1       0.00      0.00      0.00     13958
+
+    accuracy                           0.50     27916
+   macro avg       0.25      0.50      0.33     27916
+weighted avg       0.25      0.50      0.33     27916
