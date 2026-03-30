@@ -43,6 +43,16 @@ AI-Generated Music Detection and its Challenges
 - Daha güçlü reconstruction yöntemleri denemek.
 - Manipülasyon testleri yapmak.
 
+## Genelleme Testi (Generalization Test)
 
+### Türkçe
+Model Griffin-Lim ile üretilmiş sahte veriler üzerinde eğitildi ve aynı dağılımda çok yüksek doğruluk elde etti. Ancak farklı bir sahte veri dağılımı (noise tabanlı) üzerinde test edildiğinde performans ciddi şekilde düştü.
+
+- Accuracy: 0.4999  
+- Precision: 0.0000  
+- Recall: 0.0000  
+- F1-score: 0.0000  
+
+Bu sonuç, modelin genel bir sahte müzik kavramını öğrenmek yerine, belirli bir üretim yöntemine (Griffin-Lim) özgü özellikleri öğrendiğini göstermektedir.
 
 
