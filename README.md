@@ -1,58 +1,107 @@
-# ai-music-detection-study
-# Bu haftanın özeti 
 
-## Referans çalışma
-AI-Generated Music Detection and its Challenges
+
+# 2. Hafta İlerleme Özeti
 
 ## Bu hafta yapılanlar
-- Referans makale incelendi.
-- FMA-small veri seti indirildi ve klasör yapısı hazırlandı.
-- Ses dosyalarının Python ile yüklenmesi test edildi.
-- STFT tabanlı spectrogram üretiö hattı kuruldu.
-- FMA üzerinden 100 örnekten oluşan bir çalışma alt kümesi oluşturuldu.
-- Gerçek spectrogram verileri .npy olarak kaydedildi.
-- Griffin-Lim yöntemi ile sahte benzeri reconstruction üretildi.
-- Sahte spectrogram veri seti oluşturuldu.
-- Real/fake etiketli train/validation/test ayrımı yapıldı.
-- PyTorch Dataset ve DataLoader sınıfları oluşturuldu.
-- Basit CNN modeli kuruldu.
-- Cropped spectrogram yaklaşımı ile baseline eğitim çalıştırıldı, başarılı oldu.
 
-## Kullanılan mevcut yöntem
-- Gerçek veri: FMA-small
-- Sahte veri: Griffin-Lim reconstruction
-- Özellik çıkarma: STFT amplitude spectrogram (dB ölçekli)
-- Model: Basit CNN
-- Eğitim yaklaşımı: cropped spectrogram pencereleri
+- Veri seti 100 → 500 → 1000 örneğe genişletildi  
+- Spectrogram üretim pipeline’ı büyük veri ile yeniden çalıştırıldı  
+- Griffin-Lim ile sahte veri üretimi geniş veri üzerinde tekrar yapıldı  
+- Real/fake etiketli veri seti güncellendi  
+- Cropped spectrogram yaklaşımı ile model yeniden eğitildi  
+- Eğitim sürecine ek metrikler eklendi:
+  - Accuracy
+  - Precision
+  - Recall
+  - F1-score
+  - Confusion Matrix  
+- Eğitim sonuçları CSV olarak kaydedildi  
+- Eğitim eğrileri (loss ve accuracy) üretildi  
+- En iyi model kaydedildi  
+- Noise tabanlı farklı bir fake veri üretildi  
+- Model farklı veri dağılımı üzerinde test edildi (generalization test)
 
-## Eğitim sonucu
-- Epoch 1/5 | Train Loss: 0.6976 | Train Acc: 0.6415 | Val Loss: 0.4100 | Val Acc: 0.8036
-- Epoch 2/5 | Train Loss: 0.2941 | Train Acc: 0.8888 | Val Loss: 0.1249 | Val Acc: 0.9893
-- Epoch 3/5 | Train Loss: 0.0866 | Train Acc: 0.9763 | Val Loss: 0.0703 | Val Acc: 0.9643
-- Epoch 4/5 | Train Loss: 0.0632 | Train Acc: 0.9826 | Val Loss: 0.0992 | Val Acc: 0.9821
-- Epoch 5/5 | Train Loss: 0.0440 | Train Acc: 0.9906 | Val Loss: 0.0667 | Val Acc: 0.9607
-(tüm train verisi 5 kez modelden geçecek şekilde, şu an basit veriler üzerine çalıştığımız için doğruluk oranı yüksek)
+## Eğitim sonuçları (aynı dağılım)
 
+Model Griffin-Lim ile oluşturulmuş sahte veri üzerinde eğitildi.
 
-## Şu anki durum
-Çalışan ilk baseline kuruldu. Veri hazırlama, spectrogram çıkarma, sahte veri üretme ve CNN eğitimi aşamaları başarıyla tamamlandı.
+### En iyi validation sonucu
+- Epoch: 14  
+- Accuracy: 1.0000  
+- Precision: 1.0000  
+- Recall: 1.0000  
+- F1-score: 1.0000  
 
-## Sonraki adımlar (referans alınan çalışma için)
-- Referans makaledeki CNN mimarisine daha yakın model kurmak.
-- Precision, recall, F1 ve confusion matrix eklemek.
-- Daha güçlü reconstruction yöntemleri denemek.
-- Manipülasyon testleri yapmak.
+### Confusion Matrix
 
-## Genelleme Testi (Generalization Test)
+```text
+[[1358    0]
+ [   0 1428]]
+```
 
-### Türkçe
-Model Griffin-Lim ile üretilmiş sahte veriler üzerinde eğitildi ve aynı dağılımda çok yüksek doğruluk elde etti. Ancak farklı bir sahte veri dağılımı (noise tabanlı) üzerinde test edildiğinde performans ciddi şekilde düştü.
+### Yorum
+
+Model eğitim dağılımında (Griffin-Lim) çok yüksek başarı elde etmiştir.  
+Bu durum modelin mevcut veri üzerinde real ve fake ayrımını iyi öğrendiğini gösterir.  
+Ancak bu sonuç tek başına modelin genelleme yapabildiğini göstermez.
+
+## Genelleme testi (Generalization Test)
+
+Model Griffin-Lim ile eğitilip, farklı bir fake dağılımı olan noise tabanlı veri üzerinde test edilmiştir.
+
+### Sonuç
 
 - Accuracy: 0.4999  
 - Precision: 0.0000  
 - Recall: 0.0000  
 - F1-score: 0.0000  
 
-Bu sonuç, modelin genel bir sahte müzik kavramını öğrenmek yerine, belirli bir üretim yöntemine (Griffin-Lim) özgü özellikleri öğrendiğini göstermektedir.
+### Confusion Matrix
 
+```text
+[[13955     3]
+ [13958     0]]
+```
 
+### Yorum
+
+Model, eğitim sırasında gördüğü dağılım dışında tamamen başarısız olmuştur.  
+Neredeyse tüm örnekleri “gerçek” olarak sınıflandırmıştır.  
+
+Bu durum modelin genel bir sahte müzik kavramı öğrenmediğini,  
+belirli bir üretim yöntemine (Griffin-Lim) ait artefact’ları öğrendiğini göstermektedir.
+
+## Görseller
+
+- Eğitim eğrileri (loss & accuracy)  
+- Real vs Fake spectrogram karşılaştırması  
+- Ortalama spectrogram karşılaştırması  
+
+## Mevcut durum
+
+Şu anda proje:
+
+- Çalışan veri hazırlama pipeline’ına sahiptir  
+- Spectrogram üretimi tamamlanmıştır  
+- Sahte veri üretimi çalışmaktadır  
+- CNN tabanlı baseline model eğitilmiştir  
+- Metrik ve grafik üretimi yapılmaktadır  
+- Farklı veri dağılımında başarısızlık (generalization problemi) gösterilmiştir  
+
+Bu haliyle proje çalışan bir başlangıç araştırma prototipidir.
+
+## Sınırlılıklar
+
+- Fake veri üretimi henüz basit yöntemlerle yapılmıştır (Griffin-Lim, noise)  
+- Model mimarisi basit CNN’dir  
+- Neural decoder tabanlı gerçek AI üretimleri kullanılmamıştır  
+- Değerlendirme spectrogram crop seviyesinde yapılmıştır  
+
+## Sonraki adımlar
+
+- Daha güçlü model (paper’a yakın CNN)  
+- Farklı fake türleriyle birlikte eğitim  
+- Veri augmentasyonu  
+- Daha gerçekçi AI-generated müzik verileri  
+- Manipülasyon testleri  
+````
