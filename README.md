@@ -1,260 +1,300 @@
-# ai-music-detection-study
+## 3. Hafta İlerleme Özeti
 
-Bu proje, yapay zeka ile uretilmis muziklerin tespiti icin artefact-odakli bir arastirma hattidir.
+### Bu hafta yapılanlar
 
-Problem dogrudan `real vs AI music` olarak kurulmaz. Bunun yerine gercek muzikten kontrollu bozulmalar ve reconstruction family'leri uretilir; modellerin muzigin icerigini degil, uretim surecinin biraktigi izleri ogrenmesi hedeflenir.
+- Proje, baseline deney yapısından çıkarılıp daha kontrollü bir araştırma protokolüne taşındı
+- Leakage-free, track-level split mantığı kuruldu
+- Aynı track’in `real` ve ondan türetilen tüm `fake` örneklerinin aynı split içinde kalması sağlandı
+- Manifest tabanlı veri yönetimi eklendi:
+  - `global_manifest.csv`
+  - `split_manifest.csv`
+  - `manifest.csv`
+- Track-level evaluation altyapısı eklendi
+- Validation üzerinden threshold öğrenme ve testte sabit threshold kullanımı eklendi
+- Calibration / temperature scaling desteği eklendi
+- Negatif kontrol ve sanity-check altyapısı eklendi:
+  - split overlap kontrolü
+  - manifest integrity kontrolü
+  - same-source control
+- Baseline model yapısı genişletildi:
+  - `ResNet` tabanlı spectrogram modeli eklendi
+  - `ArtifactNet` adlı artefact odaklı özgün model eklendi
+  - `Attention MIL / clip-level` model altyapısı eklendi
+- Benchmark özetleme ve OOD raporlama scriptleri eklendi
+- Spectrogram çıkarım hattı daha stabil olacak şekilde yeniden düzenlendi
+- `740` gerçek track için spectrogram üretimi tamamlandı
+- `100-track` ölçeğinde yeni pilot benchmark paketi kuruldu
+- Bu paket üzerinde:
+  - same-family deney
+  - mixed-family deney
+  - leave-one-family-out OOD deneyleri
+  çalıştırıldı
+- Sonuçlar için özet tablo ve özet grafikler üretildi
+- `200-track` genişletme başlatıldı
+- `resample_8k` ve `quantize_8bit` family’leri `200-track` paketinde üretildi
+- `Griffin-Lim` family’sini daha büyük ölçekte yeniden üretme denemeleri yapıldı ancak bu adım CPU darboğazı nedeniyle tamamlanamadı (Çok zaman aldığı için yarım kalıyor)
 
-## Mevcut arastirma durumu
 
-- Gercek veri: `FMA-small`
-- Standart format: `16 kHz`, `10 saniye`
-- Ozellik: STFT amplitude spectrogram + dB scaling
-- Split protokolu: track-level, leakage'siz
-- Fake family destegi:
-  - `griffinlim_mel32`
-  - `griffinlim_mel8`
+
+### Kurulan yeni deney düzeni
+
+Bu hafta yalnızca yeni model denemesi yapılmadı; deney düzeni de güçlendirildi.
+
+Eklenen ana bileşenler:
+
+- `global_manifest.csv`
+  - tüm örneklerin merkezi kaydı
+  - `real / derived`
+  - `family`
+  - `spectrogram path`
+  - `frame count`
+  - `patch count`
+- `split_manifest.csv`
+  - track/stem bazlı split atamaları
+- track-level evaluation
+  - ana karar seviyesinin crop yerine track olması
+- validation-only threshold
+  - test setine threshold sızıntısının engellenmesi
+- calibration
+  - validation tabanlı temperature scaling
+- negative controls
+  - split overlap
+  - manifest bütünlüğü
+  - same-source false positive kontrolü
+
+Bu düzenleme ile sonuçlar daha güvenilir hale getirilmiş, kıyas yapılabilir deney zemini oluşturulmuştur.
+
+
+
+### Veri paketi ve genişletme
+
+Bu hafta aktif olarak kullanılan yeni pilot paket:
+
+- `100` gerçek track
+- fake family’ler:
   - `resample_8k`
   - `quantize_8bit`
-  - `smoothed_noise`
-- Baseline modeller:
-  - `SimpleCNN`
-  - `ResNetSpectrogram`
-  - `ArtifactNet`
-  - `Attention MIL`
 
-## Dizin yapisi
+Bu veriyle üç tür deney çalıştırıldı:
 
-- `src/build_spectrogram_dataset.py`
-  - Gercek seslerden spectrogram uretir.
-- `src/generate_griffinlim_recons.py`
-  - Parametrik Griffin-Lim family'leri uretir.
-- `src/generate_degradation_recons.py`
-  - Codec gerektirmeyen degradation family'leri uretir.
-- `src/build_fake_spectrogram_dataset.py`
-  - Fake family audio'larini spectrogram datasetine cevirir.
-- `src/create_labeled_split.py`
-  - Belge v1.3 uyumlu `global_manifest`, `split_manifest` ve labeled split uretir.
-- `src/create_ood_splits.py`
-  - Leave-one-family-out OOD split setleri uretir.
-- `src/evaluate_track_protocol.py`
-  - Validation'dan threshold ve calibration ogrenip testte donduran track-level evaluation contract.
-- `src/run_negative_controls.py`
-  - Stem overlap, manifest butunlugu ve same-source control ozeti uretir.
-- `src/random_label_sanity_check.py`
-  - Random-label sanity check icin split uretir.
-- `src/train_cropped_baseline.py`
-  - `simplecnn`, `resnet`, `artifactnet` icin crop-based egitim.
-- `src/train_clip_attention.py`
-  - Attention MIL ile clip-level egitim.
-- `src/plot_evaluation_suite.py`
-  - ROC, PR, histogram, threshold sweep, family bar chart uretir.
-- `src/build_benchmark_report.py`
-  - Standart benchmark tablosu uretir.
-- `src/build_ood_benchmark_report.py`
-  - Held-out family OOD matrisi uretir.
-- `scripts/run_research_suite.ps1`
-  - Tum ID benchmark hattini calistirir.
-- `scripts/run_ood_matrix.ps1`
-  - Held-out family OOD deneylerini toplu calistirir.
+- same-family training/testing
+- mixed-family training/testing
+- leave-one-family-out OOD testing
 
-## Standart pipeline
+Ayrıca veri ölçeğini büyütmek için ek çalışma başlatıldı:
 
-### 1. Gercek spectrogramlari uret
+- `200-track` subset oluşturuldu
+- `200-track` real spectrogram paketi hazırlandı
+- `resample_8k` fake family üretildi
+- `quantize_8bit` fake family üretildi
 
-```powershell
-python src/build_spectrogram_dataset.py `
-  --input-list data/fma_subset_1000.txt `
-  --output-dir data/processed/fma_specs
-```
+Bu genişletme, veri çeşitliliğini artırma ve daha sağlam benchmark kurma yönünde atılmış ilk adımdır.
 
-### 2. Fake family'leri uret
 
-```powershell
-python src/generate_griffinlim_recons.py `
-  --input-list data/fma_subset_1000.txt `
-  --output-root data/reconstructed `
-  --family-name griffinlim_mel32 `
-  --n-iter 32
-```
 
-```powershell
-python src/generate_griffinlim_recons.py `
-  --input-list data/fma_subset_1000.txt `
-  --output-root data/reconstructed `
-  --family-name griffinlim_mel8 `
-  --n-iter 8
-```
+### ResNet same-family pilot sonucu
 
-```powershell
-python src/generate_degradation_recons.py `
-  --input-list data/fma_subset_1000.txt `
-  --output-root data/reconstructed `
-  --families resample_8k quantize_8bit smoothed_noise
-```
+`100-track` same-family pilotta `ResNet` modeli çalıştırılmıştır.
 
-### 3. Fake spectrogramlari olustur
+**Sonuç**
+- Accuracy: `1.0000`
+- Balanced Accuracy: `1.0000`
+- Precision: `1.0000`
+- Recall: `1.0000`
+- F1-score: `1.0000`
 
-```powershell
-python src/build_fake_spectrogram_dataset.py `
-  --input-dir data/reconstructed `
-  --output-dir data/processed/fake_specs
-```
+**Yorum**
+Aynı family içinde model çok yüksek performans göstermektedir.
+Bu sonuç, yeni protokol altında da modelin gördüğü dağılımı çok iyi ayırabildiğini göstermektedir.
+Ancak bu sonuç tek başına genelleme anlamına gelmemektedir.
 
-### 4. Leakage'siz split ve OOD split uret
 
-```powershell
-python src/create_labeled_split.py `
-  --real-dir data/processed/fma_specs `
-  --fake-dir data/processed/fake_specs `
-  --output-dir data/splits_labeled
-```
+### ResNet mixed-family pilot sonucu
 
-Bu adim su dosyalari uretir:
+Model, `resample_8k + quantize_8bit` family’leri ile birlikte eğitilmiştir.
 
-- `data/splits_labeled/global_manifest.csv`
-- `data/splits_labeled/split_manifest.csv`
-- `data/splits_labeled/manifest.csv`
-- `data/splits_labeled/train.txt`
-- `data/splits_labeled/val.txt`
-- `data/splits_labeled/test.txt`
+**Sonuç**
+- Accuracy: `0.8667`
+- Balanced Accuracy: `0.8000`
+- Precision: `0.8333`
+- Recall: `1.0000`
+- F1-score: `0.9091`
+- AUROC: `0.9550`
 
-```powershell
-python src/create_ood_splits.py `
-  --manifest-path data/splits_labeled/manifest.csv `
-  --output-dir data/splits_labeled/ood
-```
+**Yorum**
+Mixed-family eğitim, same-family kadar kolay değildir ancak model yine güçlü performans göstermektedir.
+Bu, fake çeşitliliği arttığında modelin aynı dağılım içinde daha esnek davranabildiğini göstermektedir.
+Ancak real sınıfında hâlâ hata görülmektedir.
 
-### 5. Modelleri egit
 
-```powershell
-python src/train_cropped_baseline.py `
-  --model simplecnn `
-  --train-split data/splits_labeled/train.txt `
-  --val-split data/splits_labeled/val.txt `
-  --test-split data/splits_labeled/test.txt `
-  --output-root results_simplecnn
-```
 
-```powershell
-python src/train_cropped_baseline.py `
-  --model resnet `
-  --train-split data/splits_labeled/train.txt `
-  --val-split data/splits_labeled/val.txt `
-  --test-split data/splits_labeled/test.txt `
-  --output-root results_resnet
-```
+### ArtifactNet mixed-family pilot sonucu
 
-```powershell
-python src/train_cropped_baseline.py `
-  --model artifactnet `
-  --train-split data/splits_labeled/train.txt `
-  --val-split data/splits_labeled/val.txt `
-  --test-split data/splits_labeled/test.txt `
-  --output-root results_artifactnet
-```
+ArtifactNet, ham spectrogram ve residual benzeri artefact bilgilerini birlikte kullanan özgün modeldir.
 
-```powershell
-python src/train_clip_attention.py `
-  --train-split data/splits_labeled/train.txt `
-  --val-split data/splits_labeled/val.txt `
-  --test-split data/splits_labeled/test.txt `
-  --output-root results_attention
-```
+**Sonuç**
+- Accuracy: `0.7333`
+- Balanced Accuracy: `0.7750`
+- Precision: `0.9286`
+- Recall: `0.6500`
+- F1-score: `0.7647`
+- AUROC: `0.9200`
 
-### 6. Gorsellestirme ve benchmark
+**Yorum**
+ArtifactNet bu küçük pilot ölçekte ResNet’i geçememiştir.
+Ancak bu sonuç, modelin tamamen başarısız olduğu değil; mevcut veri ölçeğinde ek model karmaşıklığının henüz belirgin avantaj vermediği anlamına gelmektedir.
 
-```powershell
-python src/plot_evaluation_suite.py --experiment-dir results_artifactnet
-```
 
-```powershell
-python src/build_benchmark_report.py `
-  --experiment-dirs results_simplecnn results_resnet results_artifactnet results_attention `
-  --output-dir results_reports
-```
 
-### 6b. Belge v1.3 evaluation contract
+### Genelleme testi (OOD / leave-one-family-out)
 
-```powershell
-python src/evaluate_track_protocol.py `
-  --val-predictions results_resnet/logs/val_best_clip_predictions.csv `
-  --test-predictions results_resnet/logs/test_clip_predictions.csv `
-  --global-manifest data/splits_labeled/global_manifest.csv `
-  --split-manifest data/splits_labeled/split_manifest.csv `
-  --output-dir results_resnet/protocol_eval
-```
+Bu hafta genelleme testi daha kontrollü biçimde tekrar kurulmuştur.
 
-```powershell
-python src/run_negative_controls.py `
-  --global-manifest data/splits_labeled/global_manifest.csv `
-  --split-manifest data/splits_labeled/split_manifest.csv `
-  --test-predictions results_resnet/protocol_eval/predictions_track_test.csv `
-  --output-dir results_resnet/negative_controls
-```
+Test protokolü:
+- model bir fake family üzerinde eğitilir
+- hiç görmediği başka bir fake family üzerinde test edilir
 
-```powershell
-python src/random_label_sanity_check.py `
-  --input-split data/splits_labeled/train.txt `
-  --output-split data/splits_labeled/train_random_labels.txt
-```
+Bu yaklaşım, önceki “aynı dağılım yüksek başarı / farklı dağılım çöküş” gözlemini daha düzenli bir protokol altında yeniden üretmektedir.
 
-### 7. Tum arastirma hattini tek komutla calistir
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/run_research_suite.ps1 -PythonExe python
-```
+### ResNet OOD sonucu 1
 
-### 8. OOD held-out family matrisini calistir
+Train family: `quantize_8bit`  
+Test family: `resample_8k`
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/run_ood_matrix.ps1 -PythonExe python
-```
+**Sonuç**
+- Accuracy: `0.5000`
+- Balanced Accuracy: `0.5000`
+- Precision: `0.0000`
+- Recall: `0.0000`
+- F1-score: `0.0000`
+- AUROC: `0.0900`
 
-## Beklenen ciktilar
+**Yorum**
+Model, held-out family üzerinde neredeyse tamamen çökmüştür.
+Bu durum, modelin genel “fake” kavramı yerine eğitim family’sine özgü artefact’ları öğrendiğini göstermektedir.
 
-Her deney klasorunde:
 
-- `logs/training_history.csv`
-- `logs/test_clip_predictions.csv`
-- `logs/test_family_metrics.csv`
-- `metrics/test_clip_metrics.json`
-- `figures/test_roc_pr.png`
-- `figures/test_score_hist.png`
-- `figures/test_family_bars.png`
-- `figures/test_confusion_matrix.png`
-- `figures/test_threshold_sweep.png`
+### ResNet OOD sonucu 2
 
-Rapor klasorunde:
+Train family: `resample_8k`  
+Test family: `quantize_8bit`
 
+**Sonuç**
+- Accuracy: `0.4500`
+- Balanced Accuracy: `0.4500`
+- Precision: `0.4286`
+- Recall: `0.3000`
+- F1-score: `0.3529`
+- AUROC: `0.2500`
+
+**Yorum**
+İki family arasında sınırlı transfer olsa da performans hâlâ düşüktür.
+Bu da genelleme probleminin yeni protokol altında da devam ettiğini doğrulamaktadır.
+
+
+### ArtifactNet OOD sonuçları
+
+ArtifactNet modeli için de held-out-family deneyleri çalıştırılmıştır.
+
+**Sonuçlar**
+
+Train: `quantize_8bit` → Test: `resample_8k`
+- Accuracy: `0.3000`
+- Balanced Accuracy: `0.3000`
+- F1-score: `0.0000`
+
+Train: `resample_8k` → Test: `quantize_8bit`
+- Accuracy: `0.5000`
+- Balanced Accuracy: `0.5000`
+- F1-score: `0.0000`
+
+**Yorum**
+ArtifactNet, bu küçük pilot ölçekte OOD problemine çözüm getirememiştir.
+Bu hafta elde edilen en kritik araştırma sonucu şudur:
+
+**model mimarisi büyütülse bile, held-out family genelleme problemi hâlâ açık şekilde devam etmektedir.**
+
+
+### Negatif kontrol sonuçları
+
+Yeni protokolde deney güvenilirliğini artırmak için negatif kontroller de çalıştırılmıştır.
+
+**Kontrol sonuçları**
+- split overlap: `0`
+- duplicate sample id: `0`
+- missing spectrogram path: `0`
+- invalid origin row: `0`
+- same-source false positive rate: `0.0`
+
+**Yorum**
+Bu sonuçlar, veri bölünmesinde bariz leakage olmadığını ve yeni protokolün teknik olarak daha güvenilir çalıştığını göstermektedir.
+
+---
+
+### Üretilen raporlama ve görselleştirme çıktıları
+
+Bu hafta yalnızca metrikler değil, raporlama için özet tablolar ve grafikler de üretildi.
+
+**Ana özet tablolar**
 - `benchmark_summary.csv`
-- `benchmark_summary.md`
 - `ood_benchmark_summary.csv`
-- `ood_benchmark_summary.md`
 - `ood_benchmark_matrix_balanced_accuracy.csv`
 
-## Arastirma hedefi
+**Ana özet grafikler**
+- model comparison bar chart
+- same-family vs mixed-family vs OOD karşılaştırma grafiği
+- OOD heatmap
+- held-out family comparison grafiği
 
-Bu repo artik setup asamasini gecmistir. Ana hedef:
+Bu çıktılar sayesinde sonuçlar artık yalnızca klasör bazlı değil, slayt ve rapor için daha düzenli biçimde sunulabilir hale gelmiştir.
 
-1. Tek fake family ezberini kiran modeller gelistirmek
-2. Coklu fake family ile egitim yapip OOD performansi olcmek
-3. Paper ile kiyaslanabilir metrik ve gorsel raporlama uretmek
-4. `ArtifactNet` ve `Attention MIL` gibi ozgun modellerin katkisinin net etkisini gostermek
 
-## Belge v1.3 uyum durumu
 
-Bu repoda su protokol maddeleri aktiflestirilmistir:
+### 200-track genişletme durumu
 
-- track-level leakage-free split
-- global manifest + split manifest
-- validation-only threshold secimi
-- validation-only temperature scaling
-- track-level ana raporlama
-- same-source / overlap / integrity negatif kontrol girisleri
-- random-label sanity check girisi
+Bu hafta ayrıca veri ölçeğini artırmak için `200-track` genişletme başlatılmıştır.
 
-Bir sonraki faz:
+**Tamamlananlar**
+- `200-track` subset oluşturuldu
+- `200-track` real spectrogram paketi hazırlandı
+- `resample_8k` fake family üretildi
+- `quantize_8bit` fake family üretildi
 
-- same-source auxiliary control deneylerini otomatiklestirmek
-- PR-AUC'yi ana checkpoint metriği yapmak
-- Sprint 1 resmi benchmark kosularini tamamlamak
+**Tamamlanamayan kısım**
+- `Griffin-Lim` family üretimi CPU darboğazı nedeniyle tamamlanamadı
+
+**Yorum**
+Dolayısıyla `200-track` benchmark hattı henüz tam olarak koşturulmamıştır.
+Ancak veri altyapısı hazırlanmış ve genişleme süreci başlatılmıştır
+
+
+### Mevcut durum
+
+Şu anda proje:
+
+- leakage-free track-level split altyapısına sahiptir
+- manifest tabanlı deney yönetimine sahiptir
+- track-level evaluation ve calibration desteğine sahiptir
+- ResNet ve ArtifactNet pilot modellerine sahiptir
+- same-family, mixed-family ve held-out-family OOD pilot sonuçlarını üretmiştir
+- genelleme problemini yeni protokol altında yeniden göstermiştir
+- özet tablo ve görsel üretim altyapısına sahiptir
+
+### Sınırlılıklar
+
+- Pilot benchmark şu anda `100-track` ölçeğindedir
+- Kullanılan fake family’ler henüz daha çok degradation tabanlıdır
+- `Griffin-Lim` geniş ölçekte yeniden üretilememiştir
+- Neural decoder tabanlı gerçek AI-generated music verisi henüz eklenmemiştir
+- Attention MIL / clip-level model henüz tam benchmark’a sokulmamıştır
+- Çoklu seed tekrarı henüz tamamlanmamıştır
+
+### Sonraki adımlar
+
+- `200-track` benchmark hattını tamamlamak
+- `Griffin-Lim` family üretimini daha hafif ayarlarla tekrar kurmak
+- `Attention MIL` modelini benchmark’a dahil etmek
+- Daha fazla fake family ile mixed-family eğitimi genişletmek
+- Leave-one-family-out OOD matrisini büyütmek
+- Çoklu seed ile sonuçları `mean ± std` formatında raporlamak
