@@ -1,0 +1,4 @@
+experiment_dir,model,training_mode,best_epoch,clip_accuracy,clip_balanced_accuracy,clip_precision,clip_recall,clip_f1,clip_auroc,clip_auprc,tp,tn,fp,fn,real_f1,real_bal_acc,real_auroc,resample_8k_f1,resample_8k_bal_acc,resample_8k_auroc,quantize_8bit_f1,quantize_8bit_bal_acc,quantize_8bit_auroc
+results_resnet_report100,resnet,crop_level,5,1.0,1.0,1.0,1.0,1.0,1.0,0.9999999999999999,10,10,0,0,0.0,1.0,,1.0,1.0,,,,
+results_resnet_mixed100,resnet,crop_level,3,0.8666666666666667,0.8,0.8333333333333334,1.0,0.9090909090909091,0.955,0.9779974018592945,20,6,4,0,0.0,0.6,,1.0,1.0,,1.0,1.0,
+results_artifactnet_mixed100,artifactnet,crop_level,3,0.7333333333333333,0.775,0.9285714285714286,0.65,0.7647058823529411,0.92,0.9600486833284821,13,9,1,7,0.0,0.9,,1.0,1.0,,0.4615384615384615,0.3,

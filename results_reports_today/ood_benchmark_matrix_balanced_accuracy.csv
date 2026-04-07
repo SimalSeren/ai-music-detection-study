@@ -1,0 +1,3 @@
+model,quantize_8bit,resample_8k
+artifactnet,0.0,0.0
+resnet,0.3,0.0

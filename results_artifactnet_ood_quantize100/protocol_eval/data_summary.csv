@@ -1,0 +1,10 @@
+split,family,track_count,sample_count,patch_count
+train,real,80,80,1120
+train,quantize_8bit,80,80,1120
+train,resample_8k,80,80,1120
+val,real,10,10,140
+val,quantize_8bit,10,10,140
+val,resample_8k,10,10,140
+test,real,10,10,140
+test,quantize_8bit,10,10,140
+test,resample_8k,10,10,140

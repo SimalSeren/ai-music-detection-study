@@ -1,0 +1,4 @@
+family,accuracy,balanced_accuracy,precision,recall,f1,auroc,auprc,threshold,tn,fp,fn,tp,n_samples
+quantize_8bit,1.0,1.0,1.0,1.0,1.0,,1.0,0.5,0,0,0,10,10
+real,0.6,0.6,0.0,0.0,0.0,,0.0,0.5,6,4,0,0,10
+resample_8k,1.0,1.0,1.0,1.0,1.0,,1.0,0.5,0,0,0,10,10

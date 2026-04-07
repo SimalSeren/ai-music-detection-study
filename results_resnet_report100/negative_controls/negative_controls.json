@@ -1,0 +1,35 @@
+{
+  "split_overlap": [
+    {
+      "left_split": "train",
+      "right_split": "val",
+      "overlap_count": 0,
+      "example_overlap": []
+    },
+    {
+      "left_split": "train",
+      "right_split": "test",
+      "overlap_count": 0,
+      "example_overlap": []
+    },
+    {
+      "left_split": "val",
+      "right_split": "test",
+      "overlap_count": 0,
+      "example_overlap": []
+    }
+  ],
+  "manifest_integrity": {
+    "duplicate_sample_ids": 0,
+    "missing_spectrogram_paths": 0,
+    "invalid_origin_rows": 0,
+    "non_positive_patch_count_rows": 0,
+    "row_count": 200
+  },
+  "same_source_control": {
+    "available": true,
+    "real_track_count": 10,
+    "false_positive_rate": 0.0,
+    "mean_score": 0.0009014272534735999
+  }
+}

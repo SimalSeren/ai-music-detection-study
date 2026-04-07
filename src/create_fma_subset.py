@@ -1,21 +1,41 @@
-from pathlib import Path
+import argparse
 import random
+from pathlib import Path
 
-random.seed(42)
 
-root = Path("data/fma_small")
-files = sorted(root.rglob("*.mp3"))
+def parse_args():
+    parser = argparse.ArgumentParser(description="Mevcut FMA klasorunden yalnizca var olan dosyalarla subset listesi uretir.")
+    parser.add_argument("--root", type=Path, default=Path("data/fma_small"))
+    parser.add_argument("--output-file", type=Path, default=Path("data/fma_subset_available.txt"))
+    parser.add_argument("--subset-size", type=int, default=0, help="0 ise tum mevcut dosyalari yazar.")
+    parser.add_argument("--offset", type=int, default=0)
+    parser.add_argument("--seed", type=int, default=42)
+    return parser.parse_args()
 
-subset_sizes = [100, 500, 1000]
 
-for subset_size in subset_sizes:
-    if len(files) < subset_size:
-        print(f"Uyarı: {subset_size} istenecek dosya yok. Atlanıyor.")
-        continue
-    subset = random.sample(files, subset_size)
-    output_file = Path(f"data/fma_subset_{subset_size}.txt")
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_file, "w", encoding="utf-8") as f:
-        for path in subset:
-            f.write(str(path).replace("\\", "/") + "\n")
-    print(f"Subset boyutu {subset_size} listesi kaydedildi: {output_file}")
+def main():
+    args = parse_args()
+    files = sorted(args.root.rglob("*.mp3"))
+    if not files:
+        raise ValueError(f"MP3 bulunamadi: {args.root}")
+
+    if args.subset_size and args.subset_size < len(files):
+        if args.offset > 0:
+            files = files[args.offset : args.offset + args.subset_size]
+        else:
+            rng = random.Random(args.seed)
+            files = sorted(rng.sample(files, args.subset_size))
+    elif args.offset > 0:
+        files = files[args.offset:]
+
+    args.output_file.parent.mkdir(parents=True, exist_ok=True)
+    with open(args.output_file, "w", encoding="utf-8") as handle:
+        for path in files:
+            handle.write(path.as_posix() + "\n")
+
+    print(f"Subset kaydedildi: {args.output_file}")
+    print(f"Toplam dosya: {len(files)}")
+
+
+if __name__ == "__main__":
+    main()

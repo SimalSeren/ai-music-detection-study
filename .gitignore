@@ -10,3 +10,6 @@ data/
 *.flac
 *.zip
 .DS_Store
+.mplconfig/
+tmp_pdf_pages/
+results_ood_report100_multi_v2/

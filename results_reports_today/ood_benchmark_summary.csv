@@ -1,0 +1,5 @@
+experiment_dir,model,held_out_family,clip_accuracy,clip_balanced_accuracy,clip_f1,clip_auroc,held_out_f1,held_out_balanced_accuracy,held_out_auroc,real_f1,real_balanced_accuracy
+results_resnet_ood_quantize100,resnet,quantize_8bit,0.45,0.44999999999999996,0.35294117647058826,0.25,0.4615384615384615,0.3,,0.0,0.6
+results_resnet_ood_resample100,resnet,resample_8k,0.5,0.5,0.0,0.09,0.0,0.0,,0.0,1.0
+results_artifactnet_ood_resample100,artifactnet,resample_8k,0.3,0.3,0.0,0.0,0.0,0.0,,0.0,0.6
+results_artifactnet_ood_quantize100,artifactnet,quantize_8bit,0.5,0.5,0.0,0.44999999999999996,0.0,0.0,,0.0,1.0

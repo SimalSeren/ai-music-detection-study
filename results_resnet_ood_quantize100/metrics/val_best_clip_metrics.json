@@ -1,0 +1,15 @@
+{
+  "accuracy": 0.9,
+  "balanced_accuracy": 0.9,
+  "precision": 0.8333333333333334,
+  "recall": 1.0,
+  "f1": 0.9090909090909091,
+  "auroc": 1.0,
+  "auprc": 0.9999999999999999,
+  "threshold": 0.5,
+  "tn": 8,
+  "fp": 2,
+  "fn": 0,
+  "tp": 10,
+  "n_samples": 20
+}
