@@ -28,6 +28,8 @@ def infer_model_name(experiment_dir: Path):
         return "attention_mil"
     if "artifact" in name:
         return "artifactnet"
+    if "transformer" in name:
+        return "transformer"
     if "resnet" in name:
         return "resnet"
     if "simple" in name or "baseline" in name:

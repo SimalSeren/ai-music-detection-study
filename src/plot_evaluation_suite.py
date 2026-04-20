@@ -13,7 +13,6 @@ from sklearn.metrics import (
     roc_curve,
 )
 from sklearn.manifold import TSNE
-import seaborn as sns
 
 
 def plot_embeddings(embeddings_path: Path, output_dir: Path, prefix: str):
@@ -35,14 +34,18 @@ def plot_embeddings(embeddings_path: Path, output_dir: Path, prefix: str):
     coords = tsne.fit_transform(features)
     
     plt.figure(figsize=(10, 8))
-    sns.scatterplot(
-        x=coords[:, 0], 
-        y=coords[:, 1], 
-        hue=families, 
-        palette="tab10",
-        s=40,
-        alpha=0.7
-    )
+    unique_families = list(dict.fromkeys(families.tolist()))
+    cmap = plt.get_cmap("tab10")
+    for idx, family in enumerate(unique_families):
+        mask = families == family
+        plt.scatter(
+            coords[mask, 0],
+            coords[mask, 1],
+            label=str(family),
+            color=cmap(idx % 10),
+            s=24,
+            alpha=0.7,
+        )
     plt.title(f"{prefix.upper()} t-SNE Embeddings (Subsampled)")
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
